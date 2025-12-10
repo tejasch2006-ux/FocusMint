@@ -1,0 +1,2044 @@
+cat > index.html << 'EOF'
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎮 FocusMint - Gamified Study Timer</title>
+    <!-- Google AdSense Script (REPLACE WITH YOUR PUBLISHER ID) -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Fredoka+One&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --mint: #00D4AA;
+            --mint-dark: #00B894;
+            --mint-light: #80E8D0;
+            --purple: #9D4EDD;
+            --pink: #FF6B8B;
+            --yellow: #FFD166;
+            --blue: #118AB2;
+            
+            /* Light Theme */
+            --bg-primary: #FFFFFF;
+            --bg-secondary: #F8FAFC;
+            --bg-card: #FFFFFF;
+            --bg-hover: #F1F5F9;
+            --text-primary: #1E293B;
+            --text-secondary: #64748B;
+            --text-muted: #94A3B8;
+            --border-color: #E2E8F0;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.07);
+            --shadow-lg: 0 10px 25px -5px rgba(0,0,0,0.08);
+            --shadow-xl: 0 20px 40px -10px rgba(0,0,0,0.1);
+            --glass-bg: rgba(255, 255, 255, 0.8);
+        }
+
+        .dark-mode {
+            /* Dark Theme */
+            --bg-primary: #0F172A;
+            --bg-secondary: #1E293B;
+            --bg-card: #1E293B;
+            --bg-hover: #334155;
+            --text-primary: #F1F5F9;
+            --text-secondary: #CBD5E1;
+            --text-muted: #94A3B8;
+            --border-color: #334155;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.2);
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.3);
+            --shadow-lg: 0 10px 25px -5px rgba(0,0,0,0.4);
+            --shadow-xl: 0 20px 40px -10px rgba(0,0,0,0.5);
+            --glass-bg: rgba(30, 41, 59, 0.8);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            transition: all 0.3s ease;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 40px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--mint), var(--purple));
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            color: white;
+            box-shadow: var(--shadow-md);
+        }
+
+        .logo-text {
+            font-family: 'Fredoka One', cursive;
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--mint), var(--purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Theme Toggle */
+        .theme-toggle {
+            width: 60px;
+            height: 32px;
+            background: var(--bg-card);
+            border-radius: 50px;
+            position: relative;
+            cursor: pointer;
+            border: 2px solid var(--border-color);
+        }
+
+        .toggle-slider {
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            background: linear-gradient(135deg, var(--mint), var(--purple));
+            border-radius: 50%;
+            top: 2px;
+            left: 4px;
+            transition: transform 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .dark-mode .toggle-slider {
+            transform: translateX(26px);
+        }
+
+        /* Main Container */
+        .main-container {
+            display: grid;
+            grid-template-columns: 300px 1fr 300px;
+            gap: 20px;
+            padding: 20px;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            padding: 25px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-lg);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .card-title {
+            font-family: 'Fredoka One', cursive;
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-title i {
+            color: var(--mint);
+        }
+
+        /* Timer Card */
+        .timer-card {
+            margin: 20px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .timer-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, var(--mint-light) 0%, transparent 70%);
+            opacity: 0.1;
+            animation: rotate 20s linear infinite;
+        }
+
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .timer-container {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px;
+        }
+
+        .timer-display {
+            font-family: 'Fredoka One', cursive;
+            font-size: 5.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--mint), var(--purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin: 10px 0;
+        }
+
+        .timer-mode {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--mint);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            padding: 8px 20px;
+            background: var(--bg-hover);
+            border-radius: 50px;
+            display: inline-block;
+        }
+
+        /* Timer Controls */
+        .timer-controls {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 15px;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--mint), var(--mint-dark));
+            color: white;
+            box-shadow: 0 8px 25px rgba(0, 212, 170, 0.3);
+        }
+
+        .btn-secondary {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(0, 212, 170, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(-1px);
+        }
+
+        .btn-shine {
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: 0.5s;
+        }
+
+        .btn:hover .btn-shine {
+            left: 100%;
+        }
+
+        /* Progress Bars */
+        .progress-container {
+            margin: 20px 0;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .progress-bar {
+            height: 10px;
+            background: var(--bg-hover);
+            border-radius: 5px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--mint), var(--purple));
+            border-radius: 5px;
+            width: 0%;
+            transition: width 0.5s ease;
+            position: relative;
+        }
+
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        /* Tasks */
+        .task-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        .task-item {
+            background: var(--bg-hover);
+            padding: 15px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-left: 4px solid var(--mint);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .task-item:hover {
+            transform: translateX(5px);
+            background: var(--bg-card);
+        }
+
+        .task-content {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .task-checkbox {
+            width: 22px;
+            height: 22px;
+            border: 2px solid var(--border-color);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .task-checkbox.checked {
+            background: var(--mint);
+            border-color: var(--mint);
+        }
+
+        .task-checkbox.checked::after {
+            content: '✓';
+            color: white;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .task-text {
+            font-size: 0.95rem;
+            color: var(--text-primary);
+        }
+
+        .task-text.completed {
+            text-decoration: line-through;
+            color: var(--text-muted);
+        }
+
+        /* Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-card {
+            background: var(--bg-hover);
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+        }
+
+        .stat-value {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: var(--mint);
+            margin-bottom: 5px;
+            font-family: 'Fredoka One', cursive;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        /* Achievements */
+        .achievements-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .achievement {
+            background: var(--bg-hover);
+            padding: 15px;
+            border-radius: 15px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .achievement:hover {
+            transform: scale(1.05);
+        }
+
+        .achievement.locked {
+            opacity: 0.5;
+            filter: grayscale(1);
+        }
+
+        .achievement.unlocked {
+            border: 2px solid var(--yellow);
+            box-shadow: 0 5px 15px rgba(255, 209, 102, 0.2);
+        }
+
+        .achievement-icon {
+            font-size: 1.8rem;
+            margin-bottom: 8px;
+            color: var(--mint);
+        }
+
+        .achievement-name {
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: var(--text-primary);
+        }
+
+        .achievement-desc {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+        }
+
+        /* Mode Selector */
+        .mode-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .mode-btn {
+            flex: 1;
+            padding: 12px;
+            background: var(--bg-hover);
+            border: 2px solid transparent;
+            border-radius: 15px;
+            color: var(--text-primary);
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .mode-btn.active {
+            background: var(--bg-card);
+            border-color: var(--mint);
+            color: var(--mint);
+            box-shadow: 0 5px 15px rgba(0, 212, 170, 0.2);
+        }
+
+        /* Timer Settings */
+        .timer-settings {
+            margin: 25px 0;
+            padding: 20px;
+            background: var(--bg-hover);
+            border-radius: 20px;
+        }
+
+        .setting-group {
+            margin-bottom: 20px;
+        }
+
+        .setting-label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .time-input {
+            width: 100%;
+            padding: 12px;
+            background: var(--bg-card);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-family: 'Poppins', sans-serif;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .time-input:focus {
+            outline: none;
+            border-color: var(--mint);
+            box-shadow: 0 0 0 3px rgba(0, 212, 170, 0.1);
+        }
+
+        /* Ads Container */
+        .ads-container {
+            margin: 20px 0;
+            padding: 15px;
+            background: var(--bg-hover);
+            border-radius: 15px;
+            border: 2px dashed var(--border-color);
+            text-align: center;
+            min-height: 250px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: var(--text-muted);
+        }
+
+        .ad-label {
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+            color: var(--text-secondary);
+        }
+
+        .ad-placeholder {
+            width: 300px;
+            height: 250px;
+            background: var(--bg-card);
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* AdSense Ads */
+        .ad-unit {
+            width: 100%;
+            height: auto;
+            margin: 10px 0;
+            text-align: center;
+        }
+
+        .ad-break {
+            margin: 30px auto;
+            max-width: 728px;
+            height: 90px;
+            display: none;
+        }
+
+        .ad-sidebar {
+            width: 300px;
+            height: 250px;
+            margin: 0 auto;
+        }
+
+        /* XP Display */
+        .xp-display {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding: 20px;
+            background: linear-gradient(135deg, rgba(0, 212, 170, 0.1), rgba(157, 78, 221, 0.1));
+            border-radius: 20px;
+        }
+
+        .xp-bar {
+            flex: 1;
+            height: 12px;
+            background: var(--bg-hover);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .xp-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--mint), var(--purple));
+            border-radius: 6px;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .xp-text {
+            font-weight: 600;
+            color: var(--mint);
+            white-space: nowrap;
+            font-size: 1.1rem;
+        }
+
+        /* Notification */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            border-radius: 20px;
+            border-left: 5px solid var(--mint);
+            box-shadow: var(--shadow-xl);
+            transform: translateX(400px);
+            transition: transform 0.5s ease;
+            z-index: 1000;
+            max-width: 350px;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification-title {
+            color: var(--mint);
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .notification-message {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        /* Study Tips */
+        .study-tip {
+            background: linear-gradient(135deg, var(--mint) 0%, var(--purple) 100%);
+            padding: 25px;
+            border-radius: 20px;
+            color: white;
+            margin-top: 20px;
+        }
+
+        .study-tip-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
+        .study-tip-text {
+            opacity: 0.9;
+            line-height: 1.6;
+        }
+
+        /* Floating Elements */
+        .floating-elements {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .floating-element {
+            position: absolute;
+            font-size: 2rem;
+            opacity: 0.1;
+            animation: float 20s infinite linear;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0) rotate(0deg); }
+            100% { transform: translateY(-100vh) rotate(360deg); }
+        }
+
+        /* Task Input */
+        .task-input-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .task-input {
+            flex: 1;
+            padding: 15px;
+            background: var(--bg-card);
+            border: 2px solid var(--border-color);
+            border-radius: 15px;
+            color: var(--text-primary);
+            font-family: 'Poppins', sans-serif;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .task-input:focus {
+            outline: none;
+            border-color: var(--mint);
+            box-shadow: 0 0 0 3px rgba(0, 212, 170, 0.1);
+        }
+
+        .add-task-btn {
+            padding: 15px;
+            background: var(--mint);
+            border: none;
+            border-radius: 15px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 56px;
+        }
+
+        .add-task-btn:hover {
+            background: var(--mint-dark);
+            transform: translateY(-2px);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            .main-container {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto auto auto;
+            }
+            
+            .timer-display {
+                font-size: 4.5rem;
+            }
+            
+            .ad-sidebar {
+                width: 100%;
+                max-width: 300px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                padding: 15px 20px;
+            }
+            
+            .logo-text {
+                font-size: 1.5rem;
+            }
+            
+            .timer-controls {
+                flex-direction: column;
+                width: 100%;
+            }
+            
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .stats-grid,
+            .achievements-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .timer-display {
+                font-size: 3.5rem;
+            }
+            
+            .ad-break {
+                max-width: 320px;
+                height: 100px;
+            }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-hover);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--mint);
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease forwards;
+        }
+
+        /* Ripple Effect */
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.7);
+            transform: scale(0);
+            animation: ripple-animation 0.6s linear;
+        }
+
+        @keyframes ripple-animation {
+            to {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+
+        /* Premium Badge */
+        .premium-badge {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, var(--yellow), #FF9D00);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: var(--shadow-lg);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .premium-badge:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-xl);
+        }
+
+        /* Coin Display */
+        .coin-display {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 20px;
+            background: linear-gradient(135deg, rgba(255, 209, 102, 0.1), rgba(255, 209, 102, 0.2));
+            border-radius: 15px;
+            margin-top: 15px;
+        }
+
+        .coin-icon {
+            color: var(--yellow);
+            font-size: 1.2rem;
+        }
+
+        .coin-count {
+            font-weight: 700;
+            color: var(--yellow);
+            font-size: 1.1rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Floating Background -->
+    <div class="floating-elements" id="floatingElements"></div>
+
+    <!-- Notification -->
+    <div class="notification" id="notification">
+        <div class="notification-title">
+            <i class="fas fa-trophy"></i>
+            <span id="notificationTitle">Welcome to FocusMint!</span>
+        </div>
+        <div class="notification-message" id="notificationMessage">Complete your first focus session to earn XP!</div>
+    </div>
+
+    <!-- Premium Badge -->
+    <div class="premium-badge" id="premiumBadge">
+        <i class="fas fa-crown"></i>
+        <span>Go Ad-Free</span>
+    </div>
+
+    <!-- Header -->
+    <div class="header">
+        <div class="logo">
+            <div class="logo-icon">
+                🎮
+            </div>
+            <div class="logo-text">FocusMint</div>
+        </div>
+        <div class="theme-toggle" id="themeToggle">
+            <div class="toggle-slider">
+                <i class="fas fa-sun"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Left Panel -->
+        <div class="left-panel">
+            <!-- Stats Card -->
+            <div class="card fade-in">
+                <div class="card-title">
+                    <i class="fas fa-chart-line"></i>
+                    Your Stats
+                </div>
+                
+                <div class="xp-display">
+                    <div class="xp-bar">
+                        <div class="xp-fill" id="xpFill"></div>
+                    </div>
+                    <div class="xp-text" id="xpText">Level 1 • 0 XP</div>
+                </div>
+                
+                <!-- Coin Display -->
+                <div class="coin-display">
+                    <i class="fas fa-coins coin-icon"></i>
+                    <div class="coin-count" id="coinCount">0 Coins</div>
+                </div>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="focusTime">0</div>
+                        <div class="stat-label">Hours Focused</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="tasksDone">0</div>
+                        <div class="stat-label">Tasks Done</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="streak">1</div>
+                        <div class="stat-label">Day Streak</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="sessionsDone">0</div>
+                        <div class="stat-label">Sessions</div>
+                    </div>
+                </div>
+                
+                <div class="progress-container">
+                    <div class="progress-header">
+                        <span>Daily Goal (4 sessions)</span>
+                        <span id="dailyGoalPercent">0%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="dailyGoalFill"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ad Slot 1: Sidebar Rectangle -->
+            <div class="ads-container fade-in" id="adSlot1">
+                <div class="ad-label">📚 Study Resources</div>
+                <!-- AdSense Code Here - Replace with your ad unit -->
+                <ins class="adsbygoogle ad-sidebar"
+                     style="display:block"
+                     data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+                     data-ad-slot="1234567890"
+                     data-ad-format="auto"
+                     data-full-width-responsive="true"></ins>
+                <script>
+                     (adsbygoogle = window.adsbygoogle || []).push({});
+                </script>
+            </div>
+
+            <!-- Achievements Card -->
+            <div class="card fade-in">
+                <div class="card-title">
+                    <i class="fas fa-trophy"></i>
+                    Achievements
+                </div>
+                <div class="achievements-grid" id="achievementsGrid">
+                    <!-- Will be populated by JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Center Panel -->
+        <div class="center-panel">
+            <!-- Timer Card -->
+            <div class="card timer-card fade-in">
+                <div class="timer-container">
+                    <!-- Mode Selector -->
+                    <div class="mode-selector">
+                        <div class="mode-btn active" data-mode="focus">
+                            <i class="fas fa-brain"></i>
+                            Focus
+                        </div>
+                        <div class="mode-btn" data-mode="short-break">
+                            <i class="fas fa-coffee"></i>
+                            Short Break
+                        </div>
+                        <div class="mode-btn" data-mode="long-break">
+                            <i class="fas fa-umbrella-beach"></i>
+                            Long Break
+                        </div>
+                    </div>
+                    
+                    <!-- Timer Display -->
+                    <div class="timer-display" id="timerDisplay">25:00</div>
+                    <div class="timer-mode" id="timerMode">FOCUS SESSION</div>
+                    
+                    <!-- Timer Controls -->
+                    <div class="timer-controls">
+                        <button class="btn btn-primary" id="startBtn">
+                            <span class="btn-shine"></span>
+                            <i class="fas fa-play"></i>
+                            Start Session
+                        </button>
+                        <button class="btn btn-secondary" id="pauseBtn">
+                            <span class="btn-shine"></span>
+                            <i class="fas fa-pause"></i>
+                            Pause
+                        </button>
+                        <button class="btn btn-secondary" id="resetBtn">
+                            <span class="btn-shine"></span>
+                            <i class="fas fa-redo"></i>
+                            Reset
+                        </button>
+                    </div>
+
+                    <!-- Timer Settings -->
+                    <div class="timer-settings">
+                        <div class="card-title">
+                            <i class="fas fa-cog"></i>
+                            Timer Settings
+                        </div>
+                        
+                        <div class="setting-group">
+                            <label class="setting-label">Focus Duration (minutes)</label>
+                            <input type="number" class="time-input" id="focusTimeInput" min="1" max="60" value="25">
+                        </div>
+                        
+                        <div class="setting-group">
+                            <label class="setting-label">Short Break (minutes)</label>
+                            <input type="number" class="time-input" id="shortBreakInput" min="1" max="30" value="5">
+                        </div>
+                        
+                        <div class="setting-group">
+                            <label class="setting-label">Long Break (minutes)</label>
+                            <input type="number" class="time-input" id="longBreakInput" min="5" max="60" value="15">
+                        </div>
+                        
+                        <button class="btn btn-primary" id="saveSettingsBtn" style="width: 100%; margin-top: 10px;">
+                            <i class="fas fa-save"></i>
+                            Save Settings
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ad Slot 2: Break Ad (Shown only during breaks) -->
+            <div class="ad-unit ad-break fade-in" id="breakAd">
+                <!-- AdSense Code Here - Replace with your ad unit -->
+                <ins class="adsbygoogle"
+                     style="display:block"
+                     data-ad-format="auto"
+                     data-full-width-responsive="true"
+                     data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+                     data-ad-slot="0987654321"></ins>
+                <script>
+                     (adsbygoogle = window.adsbygoogle || []).push({});
+                </script>
+            </div>
+
+            <!-- Study Tip -->
+            <div class="study-tip fade-in">
+                <div class="study-tip-title">
+                    <i class="fas fa-lightbulb"></i>
+                    Pro Study Tip
+                </div>
+                <div class="study-tip-text" id="studyTip">
+                    Start with short sessions and gradually increase your focus time as you build concentration.
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Panel -->
+        <div class="right-panel">
+            <!-- Tasks Card -->
+            <div class="card fade-in">
+                <div class="card-title">
+                    <i class="fas fa-tasks"></i>
+                    Today's Tasks
+                </div>
+                
+                <div class="task-input-container">
+                    <input type="text" class="task-input" id="taskInput" placeholder="What do you want to study?">
+                    <button class="add-task-btn" id="addTaskBtn">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+                
+                <div class="task-list" id="taskList">
+                    <!-- Tasks will be added here -->
+                </div>
+                
+                <div class="progress-container">
+                    <div class="progress-header">
+                        <span>Task Progress</span>
+                        <span id="taskProgressText">0/0</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="taskProgressFill"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ad Slot 3: Sidebar Rectangle -->
+            <div class="ads-container fade-in" id="adSlot3">
+                <div class="ad-label">💡 Learning Resources</div>
+                <!-- AdSense Code Here - Replace with your ad unit -->
+                <ins class="adsbygoogle ad-sidebar"
+                     style="display:block"
+                     data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+                     data-ad-slot="1122334455"
+                     data-ad-format="auto"
+                     data-full-width-responsive="true"></ins>
+                <script>
+                     (adsbygoogle = window.adsbygoogle || []).push({});
+                </script>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="card fade-in">
+                <div class="card-title">
+                    <i class="fas fa-history"></i>
+                    Recent Activity
+                </div>
+                <div id="recentActivity">
+                    <div style="text-align: center; padding: 20px; color: var(--text-muted);">
+                        <i class="fas fa-clock fa-2x" style="margin-bottom: 10px;"></i>
+                        <div>Start your first session to see activity here!</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer Ad -->
+    <div class="ad-unit fade-in" style="margin: 40px auto; max-width: 728px;">
+        <!-- AdSense Code Here - Replace with your ad unit -->
+        <ins class="adsbygoogle"
+             style="display:block"
+             data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+             data-ad-slot="5566778899"
+             data-ad-format="auto"
+             data-full-width-responsive="true"></ins>
+        <script>
+             (adsbygoogle = window.adsbygoogle || []).push({});
+        </script>
+    </div>
+
+    <script>
+        // Game State - Starting from ZERO
+        const gameState = {
+            // User Stats - Starting fresh
+            xp: 0,
+            level: 1,
+            coins: 0,
+            streak: 1,
+            focusTime: 0,
+            tasksDone: 0,
+            sessionsDone: 0,
+            dailyGoal: 4,
+            dailyCompleted: 0,
+            isPremium: false,
+            
+            // Timer State
+            currentMode: 'focus',
+            timerRunning: false,
+            timeLeft: 25 * 60,
+            timerInterval: null,
+            
+            // Customizable Times
+            timerSettings: {
+                focus: 25,
+                shortBreak: 5,
+                longBreak: 15
+            },
+            
+            // Tasks - Empty initially
+            tasks: [],
+            
+            // Achievements - Starting fresh
+            achievements: [
+                { id: 1, name: "First Timer", desc: "Complete first session", icon: "fas fa-play", unlocked: false },
+                { id: 2, name: "Focus Novice", desc: "Complete 5 sessions", icon: "fas fa-brain", unlocked: false },
+                { id: 3, name: "Task Master", desc: "Complete 10 tasks", icon: "fas fa-tasks", unlocked: false },
+                { id: 4, name: "Consistent", desc: "3-day streak", icon: "fas fa-calendar-day", unlocked: false },
+                { id: 5, name: "Study Warrior", desc: "5 hours focused", icon: "fas fa-hourglass-half", unlocked: false },
+                { id: 6, name: "Early Bird", desc: "Study before 8 AM", icon: "fas fa-sun", unlocked: false },
+                { id: 7, name: "Night Owl", desc: "Study after 10 PM", icon: "fas fa-moon", unlocked: false },
+                { id: 8, name: "Focus Master", desc: "Complete 50 sessions", icon: "fas fa-crown", unlocked: false }
+            ],
+            
+            // Study Tips
+            studyTips: [
+                "Start with 25-minute focus sessions and 5-minute breaks.",
+                "Take a 15-minute break after every 4 focus sessions.",
+                "Stay hydrated while studying - it improves concentration.",
+                "Use active recall instead of passive reading for better retention.",
+                "Teach what you've learned to reinforce your understanding.",
+                "Create a dedicated study space free from distractions.",
+                "Use the Pomodoro technique for sustained focus.",
+                "Review your notes within 24 hours for better memory.",
+                "Set specific goals for each study session.",
+                "Take regular breaks to prevent mental fatigue."
+            ],
+            
+            // Activity Log
+            activityLog: []
+        };
+
+        // DOM Elements
+        const elements = {
+            // Timer
+            timerDisplay: document.getElementById('timerDisplay'),
+            timerMode: document.getElementById('timerMode'),
+            startBtn: document.getElementById('startBtn'),
+            pauseBtn: document.getElementById('pauseBtn'),
+            resetBtn: document.getElementById('resetBtn'),
+            
+            // Stats
+            xpFill: document.getElementById('xpFill'),
+            xpText: document.getElementById('xpText'),
+            coinCount: document.getElementById('coinCount'),
+            focusTime: document.getElementById('focusTime'),
+            tasksDone: document.getElementById('tasksDone'),
+            streak: document.getElementById('streak'),
+            sessionsDone: document.getElementById('sessionsDone'),
+            dailyGoalFill: document.getElementById('dailyGoalFill'),
+            dailyGoalPercent: document.getElementById('dailyGoalPercent'),
+            
+            // Tasks
+            taskInput: document.getElementById('taskInput'),
+            addTaskBtn: document.getElementById('addTaskBtn'),
+            taskList: document.getElementById('taskList'),
+            taskProgressText: document.getElementById('taskProgressText'),
+            taskProgressFill: document.getElementById('taskProgressFill'),
+            
+            // Timer Settings
+            focusTimeInput: document.getElementById('focusTimeInput'),
+            shortBreakInput: document.getElementById('shortBreakInput'),
+            longBreakInput: document.getElementById('longBreakInput'),
+            saveSettingsBtn: document.getElementById('saveSettingsBtn'),
+            
+            // Achievements
+            achievementsGrid: document.getElementById('achievementsGrid'),
+            
+            // Theme
+            themeToggle: document.getElementById('themeToggle'),
+            
+            // Notification
+            notification: document.getElementById('notification'),
+            notificationTitle: document.getElementById('notificationTitle'),
+            notificationMessage: document.getElementById('notificationMessage'),
+            
+            // Study Tip
+            studyTip: document.getElementById('studyTip'),
+            
+            // Recent Activity
+            recentActivity: document.getElementById('recentActivity'),
+            
+            // Mode Buttons
+            modeBtns: document.querySelectorAll('.mode-btn'),
+            
+            // Ads
+            breakAd: document.getElementById('breakAd'),
+            premiumBadge: document.getElementById('premiumBadge'),
+            adSlot1: document.getElementById('adSlot1'),
+            adSlot3: document.getElementById('adSlot3')
+        };
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            loadState();
+            initFloatingElements();
+            initTheme();
+            renderTasks();
+            renderAchievements();
+            updateStats();
+            updateTimerDisplay();
+            setRandomStudyTip();
+            setupEventListeners();
+            
+            // Initialize AdSense
+            initAdSense();
+            
+            // Show welcome notification
+            setTimeout(() => {
+                showNotification("Welcome to FocusMint! 🎮", "Start your first focus session to earn XP and coins!");
+            }, 1000);
+        });
+
+        // Initialize AdSense
+        function initAdSense() {
+            // Wait for AdSense script to load
+            if (typeof adsbygoogle !== 'undefined') {
+                // Push ads that were defined in HTML
+                try {
+                    (adsbygoogle = window.adsbygoogle || []).push({});
+                } catch (e) {
+                    console.log("AdSense initialization error:", e);
+                }
+            }
+            
+            // Load more ads after user interaction
+            setTimeout(() => {
+                if (typeof adsbygoogle !== 'undefined') {
+                    (adsbygoogle = window.adsbygoogle || []).push({});
+                }
+            }, 2000);
+        }
+
+        // Load saved state
+        function loadState() {
+            const savedState = localStorage.getItem('focusmint-state');
+            if (savedState) {
+                const parsed = JSON.parse(savedState);
+                Object.assign(gameState, parsed);
+            }
+            
+            // Load timer settings
+            elements.focusTimeInput.value = gameState.timerSettings.focus;
+            elements.shortBreakInput.value = gameState.timerSettings.shortBreak;
+            elements.longBreakInput.value = gameState.timerSettings.longBreak;
+            
+            // Hide premium badge if user is premium
+            if (gameState.isPremium) {
+                elements.premiumBadge.style.display = 'none';
+                hideAds();
+            }
+        }
+
+        // Save state
+        function saveState() {
+            localStorage.setItem('focusmint-state', JSON.stringify(gameState));
+        }
+
+        // Create floating background elements
+        function initFloatingElements() {
+            const container = document.getElementById('floatingElements');
+            const icons = ['📚', '🎓', '🧠', '✏️', '📝', '⭐️', '🎯', '🏆'];
+            
+            for (let i = 0; i < 12; i++) {
+                const element = document.createElement('div');
+                element.className = 'floating-element';
+                element.textContent = icons[Math.floor(Math.random() * icons.length)];
+                element.style.left = `${Math.random() * 100}%`;
+                element.style.fontSize = `${Math.random() * 2 + 1.5}rem`;
+                element.style.animationDuration = `${Math.random() * 30 + 20}s`;
+                element.style.animationDelay = `${Math.random() * 5}s`;
+                container.appendChild(element);
+            }
+        }
+
+        // Initialize theme
+        function initTheme() {
+            const savedTheme = localStorage.getItem('focusmint-theme');
+            if (savedTheme === 'dark') {
+                document.body.classList.add('dark-mode');
+                elements.themeToggle.querySelector('i').className = 'fas fa-moon';
+            }
+            
+            elements.themeToggle.addEventListener('click', toggleTheme);
+        }
+
+        // Toggle theme
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('focusmint-theme', isDark ? 'dark' : 'light');
+            
+            // Update toggle icon
+            const icon = elements.themeToggle.querySelector('i');
+            icon.className = isDark ? 'fas fa-moon' : 'fas fa-sun';
+        }
+
+        // Render tasks
+        function renderTasks() {
+            elements.taskList.innerHTML = '';
+            
+            if (gameState.tasks.length === 0) {
+                elements.taskList.innerHTML = `
+                    <div style="text-align: center; padding: 20px; color: var(--text-muted);">
+                        <i class="fas fa-tasks fa-2x" style="margin-bottom: 10px;"></i>
+                        <div>No tasks yet. Add your first study task!</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            gameState.tasks.forEach(task => {
+                const taskElement = document.createElement('div');
+                taskElement.className = 'task-item';
+                taskElement.innerHTML = `
+                    <div class="task-content">
+                        <div class="task-checkbox ${task.completed ? 'checked' : ''}" data-id="${task.id}"></div>
+                        <div class="task-text ${task.completed ? 'completed' : ''}">${task.text}</div>
+                    </div>
+                `;
+                elements.taskList.appendChild(taskElement);
+            });
+            
+            updateTaskProgress();
+        }
+
+        // Render achievements
+        function renderAchievements() {
+            elements.achievementsGrid.innerHTML = '';
+            gameState.achievements.forEach(achievement => {
+                const achievementElement = document.createElement('div');
+                achievementElement.className = `achievement ${achievement.unlocked ? 'unlocked' : 'locked'}`;
+                achievementElement.innerHTML = `
+                    <div class="achievement-icon">
+                        <i class="${achievement.icon}"></i>
+                    </div>
+                    <div class="achievement-name">${achievement.name}</div>
+                    <div class="achievement-desc">${achievement.desc}</div>
+                `;
+                elements.achievementsGrid.appendChild(achievementElement);
+            });
+        }
+
+        // Update stats display
+        function updateStats() {
+            // XP and level
+            const level = Math.floor(gameState.xp / 100) + 1;
+            const levelXp = gameState.xp % 100;
+            const xpPercent = (levelXp / 100) * 100;
+            
+            elements.xpFill.style.width = `${xpPercent}%`;
+            elements.xpText.textContent = `Level ${level} • ${gameState.xp} XP`;
+            
+            // Coins
+            elements.coinCount.textContent = `${gameState.coins} Coins`;
+            
+            // Other stats
+            elements.focusTime.textContent = gameState.focusTime.toFixed(1);
+            elements.tasksDone.textContent = gameState.tasksDone;
+            elements.streak.textContent = gameState.streak;
+            elements.sessionsDone.textContent = gameState.sessionsDone;
+            
+            // Daily goal
+            const goalPercent = Math.min(100, (gameState.dailyCompleted / gameState.dailyGoal) * 100);
+            elements.dailyGoalFill.style.width = `${goalPercent}%`;
+            elements.dailyGoalPercent.textContent = `${Math.round(goalPercent)}%`;
+            
+            // Save state
+            saveState();
+        }
+
+        // Update task progress
+        function updateTaskProgress() {
+            const completedTasks = gameState.tasks.filter(task => task.completed).length;
+            const totalTasks = gameState.tasks.length;
+            const progressPercent = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
+            
+            elements.taskProgressText.textContent = `${completedTasks}/${totalTasks}`;
+            elements.taskProgressFill.style.width = `${progressPercent}%`;
+        }
+
+        // Update timer display
+        function updateTimerDisplay() {
+            const minutes = Math.floor(gameState.timeLeft / 60);
+            const seconds = gameState.timeLeft % 60;
+            elements.timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
+            // Update timer mode text
+            const modeText = {
+                focus: 'FOCUS SESSION',
+                'short-break': 'SHORT BREAK',
+                'long-break': 'LONG BREAK'
+            }[gameState.currentMode];
+            
+            elements.timerMode.textContent = modeText;
+        }
+
+        // Set random study tip
+        function setRandomStudyTip() {
+            const randomIndex = Math.floor(Math.random() * gameState.studyTips.length);
+            elements.studyTip.textContent = gameState.studyTips[randomIndex];
+        }
+
+        // Show notification
+        function showNotification(title, message) {
+            elements.notificationTitle.textContent = title;
+            elements.notificationMessage.textContent = message;
+            elements.notification.classList.add('show');
+            
+            setTimeout(() => {
+                elements.notification.classList.remove('show');
+            }, 4000);
+        }
+
+        // Start timer
+        function startTimer() {
+            if (gameState.timerRunning) return;
+            
+            gameState.timerRunning = true;
+            elements.startBtn.innerHTML = `<span class="btn-shine"></span><i class="fas fa-play"></i> Running...`;
+            elements.startBtn.disabled = true;
+            
+            gameState.timerInterval = setInterval(() => {
+                gameState.timeLeft--;
+                updateTimerDisplay();
+                
+                if (gameState.timeLeft <= 0) {
+                    completeSession();
+                }
+            }, 1000);
+        }
+
+        // Pause timer
+        function pauseTimer() {
+            if (!gameState.timerRunning) return;
+            
+            gameState.timerRunning = false;
+            clearInterval(gameState.timerInterval);
+            elements.startBtn.innerHTML = `<span class="btn-shine"></span><i class="fas fa-play"></i> Resume`;
+            elements.startBtn.disabled = false;
+        }
+
+        // Reset timer
+        function resetTimer() {
+            pauseTimer();
+            updateTimeForCurrentMode();
+            updateTimerDisplay();
+            elements.startBtn.innerHTML = `<span class="btn-shine"></span><i class="fas fa-play"></i> Start Session`;
+            elements.startBtn.disabled = false;
+        }
+
+        // Update time based on current mode
+        function updateTimeForCurrentMode() {
+            switch(gameState.currentMode) {
+                case 'focus':
+                    gameState.timeLeft = gameState.timerSettings.focus * 60;
+                    break;
+                case 'short-break':
+                    gameState.timeLeft = gameState.timerSettings.shortBreak * 60;
+                    break;
+                case 'long-break':
+                    gameState.timeLeft = gameState.timerSettings.longBreak * 60;
+                    break;
+            }
+        }
+
+        // Complete session
+        function completeSession() {
+            pauseTimer();
+            
+            // Add confetti effect
+            confetti({
+                particleCount: 150,
+                spread: 70,
+                origin: { y: 0.6 }
+            });
+            
+            // Award XP, coins and update stats
+            let xpEarned = 0;
+            let coinsEarned = 0;
+            let focusTimeAdded = 0;
+            
+            switch(gameState.currentMode) {
+                case 'focus':
+                    xpEarned = 25;
+                    coinsEarned = 5;
+                    focusTimeAdded = gameState.timerSettings.focus / 60;
+                    break;
+                case 'short-break':
+                    xpEarned = 5;
+                    coinsEarned = 1;
+                    focusTimeAdded = gameState.timerSettings.shortBreak / 60;
+                    break;
+                case 'long-break':
+                    xpEarned = 10;
+                    coinsEarned = 2;
+                    focusTimeAdded = gameState.timerSettings.longBreak / 60;
+                    break;
+            }
+            
+            gameState.xp += xpEarned;
+            gameState.coins += coinsEarned;
+            gameState.focusTime += focusTimeAdded;
+            gameState.sessionsDone++;
+            gameState.dailyCompleted++;
+            
+            // Log activity
+            const now = new Date();
+            const activity = {
+                type: gameState.currentMode,
+                xp: xpEarned,
+                coins: coinsEarned,
+                time: now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+                timestamp: now.getTime()
+            };
+            gameState.activityLog.unshift(activity);
+            
+            // Keep only last 10 activities
+            if (gameState.activityLog.length > 10) {
+                gameState.activityLog = gameState.activityLog.slice(0, 10);
+            }
+            
+            updateStats();
+            updateRecentActivity();
+            
+            // Show notification
+            const modeNames = {
+                focus: 'Focus Session',
+                'short-break': 'Short Break',
+                'long-break': 'Long Break'
+            };
+            showNotification("Session Complete! 🎉", `You earned ${xpEarned} XP and ${coinsEarned} coins!`);
+            
+            // Check for achievements
+            checkAchievements();
+            
+            // Set new random study tip
+            setRandomStudyTip();
+            
+            // Manage ads based on mode
+            if (gameState.currentMode === 'focus') {
+                // Hide break ad during focus
+                elements.breakAd.style.display = 'none';
+                
+                // After focus, check if we should take a long break
+                if (gameState.sessionsDone % 4 === 0) {
+                    changeMode('long-break');
+                } else {
+                    changeMode('short-break');
+                }
+            } else {
+                // Show break ad during breaks
+                if (!gameState.isPremium) {
+                    elements.breakAd.style.display = 'block';
+                    // Refresh ad
+                    if (typeof adsbygoogle !== 'undefined') {
+                        (adsbygoogle = window.adsbygoogle || []).push({});
+                    }
+                }
+                changeMode('focus');
+            }
+        }
+
+        // Update recent activity
+        function updateRecentActivity() {
+            elements.recentActivity.innerHTML = '';
+            
+            if (gameState.activityLog.length === 0) {
+                elements.recentActivity.innerHTML = `
+                    <div style="text-align: center; padding: 20px; color: var(--text-muted);">
+                        <i class="fas fa-clock fa-2x" style="margin-bottom: 10px;"></i>
+                        <div>Start your first session to see activity here!</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            gameState.activityLog.forEach(activity => {
+                const activityElement = document.createElement('div');
+                activityElement.style.cssText = 'padding: 16px; background: var(--bg-hover); border-radius: 16px; margin-bottom: 12px;';
+                
+                const typeText = activity.type === 'focus' ? 'Focus Session' :
+                                activity.type === 'short-break' ? 'Short Break' : 'Long Break';
+                const icon = activity.type === 'focus' ? 'fas fa-brain' :
+                           activity.type === 'short-break' ? 'fas fa-coffee' : 'fas fa-umbrella-beach';
+                
+                activityElement.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <span style="color: var(--mint); font-weight: 600; font-size: 0.95rem;">
+                            <i class="${icon}" style="margin-right: 8px;"></i>${typeText}
+                        </span>
+                        <span style="color: var(--text-muted); font-size: 0.85rem;">${activity.time}</span>
+                    </div>
+                    <div style="color: var(--text-secondary); font-size: 0.9rem;">
+                        +${activity.xp} XP • +${activity.coins} Coins
+                    </div>
+                `;
+                elements.recentActivity.appendChild(activityElement);
+            });
+        }
+
+        // Check for achievements
+        function checkAchievements() {
+            // First Timer
+            if (gameState.sessionsDone >= 1 && !gameState.achievements[0].unlocked) {
+                unlockAchievement(0);
+            }
+            
+            // Focus Novice
+            if (gameState.sessionsDone >= 5 && !gameState.achievements[1].unlocked) {
+                unlockAchievement(1);
+            }
+            
+            // Task Master
+            if (gameState.tasksDone >= 10 && !gameState.achievements[2].unlocked) {
+                unlockAchievement(2);
+            }
+            
+            // Consistent (3-day streak)
+            if (gameState.streak >= 3 && !gameState.achievements[3].unlocked) {
+                unlockAchievement(3);
+            }
+            
+            // Study Warrior (5 hours)
+            if (gameState.focusTime >= 5 && !gameState.achievements[4].unlocked) {
+                unlockAchievement(4);
+            }
+        }
+
+        // Unlock achievement
+        function unlockAchievement(index) {
+            gameState.achievements[index].unlocked = true;
+            renderAchievements();
+            
+            // Show achievement notification
+            showNotification("Achievement Unlocked! 🏆", `"${gameState.achievements[index].name}" unlocked! +50 XP +10 Coins`);
+            
+            // Award bonus XP and coins
+            gameState.xp += 50;
+            gameState.coins += 10;
+            updateStats();
+            
+            // More confetti!
+            setTimeout(() => {
+                confetti({
+                    particleCount: 200,
+                    spread: 100,
+                    origin: { y: 0.6 }
+                });
+            }, 500);
+        }
+
+        // Add new task
+        function addTask() {
+            const text = elements.taskInput.value.trim();
+            if (!text) return;
+            
+            const newTask = {
+                id: Date.now(),
+                text: text,
+                completed: false
+            };
+            
+            gameState.tasks.push(newTask);
+            renderTasks();
+            elements.taskInput.value = '';
+            
+            // Show notification
+            showNotification("Task Added 📝", `"${text}" has been added to your list`);
+        }
+
+        // Toggle task completion
+        function toggleTaskCompletion(taskId) {
+            const task = gameState.tasks.find(t => t.id === taskId);
+            if (!task) return;
+            
+            task.completed = !task.completed;
+            
+            if (task.completed) {
+                gameState.tasksDone++;
+                gameState.xp += 10;
+                gameState.coins += 3;
+                
+                // Animate completion
+                const checkbox = document.querySelector(`.task-checkbox[data-id="${taskId}"]`);
+                checkbox.classList.add('checked');
+                
+                // Show notification
+                showNotification("Task Completed! ✅", `"${task.text}" completed! +10 XP +3 Coins`);
+                
+                // Update stats
+                updateStats();
+                
+                // Check if all tasks are completed
+                const allCompleted = gameState.tasks.every(t => t.completed);
+                if (allCompleted) {
+                    showNotification("All Tasks Done! 🎉", "Amazing work! You've completed all your tasks!");
+                }
+            } else {
+                gameState.tasksDone--;
+                gameState.xp -= 10;
+                gameState.coins -= 3;
+                const checkbox = document.querySelector(`.task-checkbox[data-id="${taskId}"]`);
+                checkbox.classList.remove('checked');
+            }
+            
+            updateTaskProgress();
+        }
+
+        // Change timer mode
+        function changeMode(mode) {
+            gameState.currentMode = mode;
+            
+            // Update active button
+            elements.modeBtns.forEach(btn => {
+                if (btn.dataset.mode === mode) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+            
+            // Update timer
+            updateTimeForCurrentMode();
+            updateTimerDisplay();
+            
+            // Reset timer if not running
+            if (!gameState.timerRunning) {
+                resetTimer();
+            }
+        }
+
+        // Save timer settings
+        function saveTimerSettings() {
+            const focusTime = parseInt(elements.focusTimeInput.value);
+            const shortBreak = parseInt(elements.shortBreakInput.value);
+            const longBreak = parseInt(elements.longBreakInput.value);
+            
+            // Validate inputs
+            if (focusTime < 1 || focusTime > 60 ||
+                shortBreak < 1 || shortBreak > 30 ||
+                longBreak < 5 || longBreak > 60) {
+                showNotification("Invalid Settings ⚠️", "Please enter valid times (Focus: 1-60min, Short: 1-30min, Long: 5-60min)");
+                return;
+            }
+            
+            gameState.timerSettings.focus = focusTime;
+            gameState.timerSettings.shortBreak = shortBreak;
+            gameState.timerSettings.longBreak = longBreak;
+            
+            // Update current timer if not running
+            if (!gameState.timerRunning) {
+                updateTimeForCurrentMode();
+                updateTimerDisplay();
+            }
+            
+            showNotification("Settings Saved ✅", "Your timer settings have been updated!");
+            saveState();
+        }
+
+        // Hide ads for premium users
+        function hideAds() {
+            elements.breakAd.style.display = 'none';
+            elements.adSlot1.style.display = 'none';
+            elements.adSlot3.style.display = 'none';
+            elements.premiumBadge.style.display = 'none';
+            
+            // Hide any other ads
+            document.querySelectorAll('.ad-unit').forEach(ad => {
+                ad.style.display = 'none';
+            });
+        }
+
+        // Show premium offer
+        function showPremiumOffer() {
+            showNotification("Go Premium! 👑", 
+                `Remove all ads for 500 coins!\nCurrent coins: ${gameState.coins}/500`);
+            
+            if (gameState.coins >= 500) {
+                if (confirm("Would you like to remove all ads for 500 coins?")) {
+                    gameState.coins -= 500;
+                    gameState.isPremium = true;
+                    hideAds();
+                    updateStats();
+                    saveState();
+                    showNotification("Welcome to Premium! 🎉", "All ads have been removed. Enjoy distraction-free studying!");
+                }
+            }
+        }
+
+        // Add ripple effect to buttons
+        function addRippleEffect(event) {
+            const btn = event.currentTarget;
+            const ripple = document.createElement('span');
+            const rect = btn.getBoundingClientRect();
+            const size = Math.max(rect.width, rect.height);
+            const x = event.clientX - rect.left - size / 2;
+            const y = event.clientY - rect.top - size / 2;
+            
+            ripple.style.cssText = `
+                position: absolute;
+                border-radius: 50%;
+                background: rgba(255, 255, 255, 0.7);
+                transform: scale(0);
+                animation: ripple-animation 0.6s linear;
+                width: ${size}px;
+                height: ${size}px;
+                top: ${y}px;
+                left: ${x}px;
+                pointer-events: none;
+            `;
+            
+            btn.appendChild(ripple);
+            
+            setTimeout(() => {
+                ripple.remove();
+            }, 600);
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Timer controls
+            elements.startBtn.addEventListener('click', startTimer);
+            elements.pauseBtn.addEventListener('click', pauseTimer);
+            elements.resetBtn.addEventListener('click', resetTimer);
+            
+            // Task management
+            elements.addTaskBtn.addEventListener('click', addTask);
+            elements.taskInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') addTask();
+            });
+            
+            // Task list event delegation
+            elements.taskList.addEventListener('click', (e) => {
+                const checkbox = e.target.closest('.task-checkbox');
+                if (checkbox) {
+                    const taskId = parseInt(checkbox.dataset.id);
+                    toggleTaskCompletion(taskId);
+                }
+            });
+            
+            // Mode selector
+            elements.modeBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    changeMode(btn.dataset.mode);
+                });
+            });
+            
+            // Timer settings
+            elements.saveSettingsBtn.addEventListener('click', saveTimerSettings);
+            
+            // Premium badge
+            elements.premiumBadge.addEventListener('click', showPremiumOffer);
+            
+            // Add ripple effect to all buttons
+            document.querySelectorAll('.btn, .add-task-btn, .mode-btn').forEach(button => {
+                button.addEventListener('click', addRippleEffect);
+            });
+        }
+    </script>
+
+    <!-- 🚀 ADSENSE SETUP GUIDE (Hidden in production) -->
+    <div style="display: none;">
+        <h1>Google AdSense Setup Instructions for FocusMint</h1>
+        
+        <h2>📝 STEP 1: Get Your AdSense Account</h2>
+        <p>1. Go to <a href="https://www.google.com/adsense">google.com/adsense</a></p>
+        <p>2. Sign up with your Google account</p>
+        <p>3. Get approved (takes 1-2 weeks)</p>
+        <p>4. Get your Publisher ID: ca-pub-XXXXXXXXXXXXXXXX</p>
+        
+        <h2>🔄 STEP 2: Replace Placeholder Codes</h2>
+        <p>In the HTML code above, replace:</p>
+        <p><code>ca-pub-XXXXXXXXXXXXXXXX</code> → Your actual Publisher ID</p>
+        <p><code>data-ad-slot="1234567890"</code> → Your ad unit IDs</p>
+        
+        <h2>🎯 STEP 3: Create Ad Units in AdSense</h2>
+        <p>1. Go to AdSense Dashboard → Ads → Ad units</p>
+        <p>2. Create these ad units:</p>
+        <ul>
+            <li>Rectangle (300x250) for sidebars</li>
+            <li>Leaderboard (728x90) for break ads</li>
+            <li>Responsive ads for footer</li>
+        </ul>
+        
+        <h2>💰 STEP 4: Monetization Strategy</h2>
+        <p><strong>3 Revenue Streams:</strong></p>
+        <ol>
+            <li><strong>AdSense Ads:</strong> Strategic, non-distracting placements</li>
+            <li><strong>Premium Features:</strong> Remove ads for coins</li>
+            <li><strong>Affiliate Links:</strong> Study resources/products</li>
+        </ol>
+        
+        <h2>⚡ STEP 5: Expected Earnings</h2>
+        <p>With 1,000 daily active students:</p>
+        <ul>
+            <li>Conservative: $5-10 per day ($150-300/month)</li>
+            <li>Average: $10-20 per day ($300-600/month)</li>
+            <li>Optimized: $20-50 per day ($600-1500/month)</li>
+        </ul>
+        
+        <h2>🎮 STEP 6: Deploy Your FocusMint</h2>
+        <p>1. Save the HTML file</p>
+        <p>2. Upload to any web hosting (GitHub Pages, Netlify, Vercel)</p>
+        <p>3. Submit to AdSense for review</p>
+        <p>4. Start earning while helping students study!</p>
+    </div>
+</body>
+</html>
+EOF
